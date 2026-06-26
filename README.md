@@ -135,13 +135,13 @@ branch_03 + leaf_03 -> assets/reference/03/0303.png
 Kivicube 按钮链接直接填：
 
 ```text
-YOUR_GAME_URL_HERE
+https://zsh1227.github.io/suzhou-bonsai-ar-game/
 ```
 
-后续请把 `YOUR_GAME_URL_HERE` 替换为真实 GitHub Pages HTTPS 链接，例如：
+这是当前小游戏的真实 GitHub Pages HTTPS 链接：
 
 ```text
-https://你的GitHub用户名.github.io/suzhou-bonsai-ar-game/
+https://zsh1227.github.io/suzhou-bonsai-ar-game/
 ```
 
 如果想流程更短，用方案 A。
@@ -158,7 +158,11 @@ https://你的GitHub用户名.github.io/suzhou-bonsai-ar-game/kivicube-entry.htm
 
 如果想先给小朋友一个介绍页，用方案 B。
 
-注意：`kivicube-entry.html` 中目前使用占位符 `YOUR_GAME_URL_HERE`，正式使用前请替换为真实的 GitHub Pages HTTPS 链接。
+当前 `kivicube-entry.html` 已经接入真实小游戏链接：
+
+```text
+https://zsh1227.github.io/suzhou-bonsai-ar-game/
+```
 
 ## 本地测试
 
