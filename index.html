@@ -8,33 +8,35 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="phone-shell" aria-label="苏派盆景 AR 拼装小游戏手机界面">
+  <main class="phone-shell" aria-label="苏派盆景 AR 拼装小游戏">
     <div class="app-screen">
       <div class="status-bar" aria-hidden="true">
         <span>9:41</span>
         <span class="status-icons">
-          <span></span><span></span><span></span>
+          <span></span>
+          <span></span>
+          <span></span>
           <i></i>
         </span>
       </div>
 
       <section id="homePage" class="page page-home is-active">
-        <div class="home-hero">
-          <p class="eyebrow">江南园林 · WebAR</p>
+        <div class="home-card">
+          <p class="eyebrow">江南园林 · 手机 WebAR</p>
           <h1>苏派盆景 AR 拼装小游戏</h1>
           <p>选择容器、枝干和叶片，创造你的江南小盆景</p>
         </div>
 
-        <div class="bonsai-illustration" aria-hidden="true">
-          <div class="moon"></div>
-          <div class="tree tree-a"></div>
-          <div class="tree tree-b"></div>
-          <div class="pot"></div>
+        <div class="home-illustration" aria-hidden="true">
+          <div class="sun"></div>
+          <div class="illustration-branch branch-left"></div>
+          <div class="illustration-branch branch-right"></div>
+          <div class="illustration-pot"></div>
         </div>
 
-        <div class="tip-card">
-          <strong>手机体验更好</strong>
-          <span>上传 GitHub Pages 后，用 HTTPS 链接打开即可请求摄像头权限。</span>
+        <div class="intro-note">
+          <strong>像 AR 一样摆放</strong>
+          <span>进入后可在摄像头画面中拖动盆景整体，并用双指缩放。</span>
         </div>
 
         <button id="startExperienceButton" class="primary-button start-button" type="button">开始体验</button>
@@ -45,87 +47,71 @@
           <button id="backHomeButton" class="icon-button" type="button" aria-label="返回首页">‹</button>
           <div>
             <strong>AR 拼装</strong>
-            <span>容器 + 枝叶组合</span>
+            <span>拖动或双指缩放盆景整体</span>
           </div>
-          <button id="finishButton" class="small-button" type="button">完成</button>
+          <button id="resetPoseButton" class="small-button" type="button">居中</button>
         </header>
 
-        <section class="camera-panel">
+        <nav class="stepper" aria-label="拼装步骤">
+          <button class="step-pill is-active" data-step="1" type="button">
+            <b>1</b>
+            <span>选容器</span>
+          </button>
+          <button class="step-pill" data-step="2" type="button">
+            <b>2</b>
+            <span>选枝干</span>
+          </button>
+          <button class="step-pill" data-step="3" type="button">
+            <b>3</b>
+            <span>选叶片</span>
+          </button>
+        </nav>
+
+        <section id="cameraPanel" class="camera-panel">
           <video id="cameraVideo" autoplay playsinline muted></video>
           <div id="cameraFallback" class="camera-fallback">
-            <strong>请点击开始体验并允许摄像头</strong>
-            <span>如果拒绝权限，也可以先查看素材拼装预览。</span>
+            <strong>请允许摄像头权限</strong>
+            <span>如果暂时无法开启，也可以先在预览中完成拼装。</span>
           </div>
 
-          <div class="ar-layer" aria-label="盆景 AR 合成预览">
-            <img id="containerLayer" class="ar-asset ar-container" alt="容器层">
-            <img id="comboLayer" class="ar-asset ar-combo" alt="枝干和叶片组合层">
-            <img id="branchFallbackLayer" class="ar-asset ar-combo-part" alt="枝干备用层">
-            <img id="leafFallbackLayer" class="ar-asset ar-combo-part" alt="叶片备用层">
+          <div id="bonsaiObject" class="bonsai-object" aria-label="可拖动缩放的盆景对象">
+            <img id="plantLayer" class="ar-asset plant-layer" alt="植物图层">
+            <img id="containerLayer" class="ar-asset container-layer" alt="容器图层">
           </div>
 
           <p id="cameraMessage" class="camera-message" role="status">请允许摄像头权限，才能体验 AR 盆景拼装。</p>
         </section>
 
-        <section class="selector-tabs" aria-label="素材类型">
-          <button class="tab-button is-active" data-panel="containerPanel" type="button">容器</button>
-          <button class="tab-button" data-panel="branchPanel" type="button">枝干</button>
-          <button class="tab-button" data-panel="leafPanel" type="button">叶片</button>
-          <button class="tab-button" data-panel="tunePanel" type="button">微调</button>
-        </section>
-
-        <section class="panel-wrap">
-          <div id="containerPanel" class="asset-panel is-active">
-            <p>选择一个盆器</p>
-            <div id="containerOptions" class="choice-grid"></div>
+        <section class="choice-panel">
+          <div class="choice-header">
+            <p id="stepInstruction">请选择一个容器</p>
+            <span id="selectionSummary">容器：01</span>
           </div>
 
-          <div id="branchPanel" class="asset-panel">
-            <p>选择枝干形态</p>
-            <div id="branchOptions" class="choice-grid"></div>
-          </div>
+          <div id="choiceGrid" class="choice-grid" aria-label="当前步骤素材选项"></div>
 
-          <div id="leafPanel" class="asset-panel">
-            <p>选择叶片风格</p>
-            <div id="leafOptions" class="choice-grid"></div>
-          </div>
-
-          <div id="tunePanel" class="asset-panel tune-panel">
-            <div class="layer-switch">
-              <button class="layer-button is-active" data-layer="container" type="button">容器层</button>
-              <button class="layer-button" data-layer="combo" type="button">组合层</button>
-            </div>
-
-            <label>
-              X 位置
-              <input id="tuneX" type="range" min="-120" max="120" value="0">
-            </label>
-            <label>
-              Y 位置
-              <input id="tuneY" type="range" min="-160" max="160" value="0">
-            </label>
-            <label>
-              大小
-              <input id="tuneScale" type="range" min="60" max="160" value="100">
-            </label>
-
-            <pre id="tuneOutput" class="tune-output"></pre>
+          <div class="flow-actions">
+            <button id="prevStepButton" class="secondary-button" type="button">上一步</button>
+            <button id="nextStepButton" class="primary-button" type="button">下一步：选枝干</button>
+            <button id="finishBonsaiButton" class="primary-button is-hidden" type="button">完成我的盆景</button>
           </div>
         </section>
       </section>
 
-      <section id="resultPage" class="page page-result" aria-label="完成页面">
+      <section id="resultPage" class="page page-result" aria-label="结果页面">
         <div class="result-card">
-          <div class="medal">成</div>
+          <div class="medal">景</div>
           <h2>你的苏派盆景完成啦！</h2>
-          <p>这是一盆属于你的江南小盆景，可以继续重新搭配，寻找更雅致的比例。</p>
+          <p>你完成了一盆属于自己的江南小盆景。</p>
 
           <div class="result-preview">
-            <img id="resultContainer" class="result-container" alt="最终容器">
-            <img id="resultCombo" class="result-combo" alt="最终枝叶组合">
-            <img id="resultBranchFallback" class="result-combo result-fallback" alt="最终枝干备用图">
-            <img id="resultLeafFallback" class="result-combo result-fallback" alt="最终叶片备用图">
+            <div class="result-object">
+              <img id="resultPlantLayer" class="result-plant" alt="最终组合植物图">
+              <img id="resultContainerLayer" class="result-container" alt="最终容器图">
+            </div>
           </div>
+
+          <ul id="resultChoices" class="result-choices"></ul>
 
           <div class="result-actions">
             <button id="remixButton" class="primary-button" type="button">重新搭配</button>

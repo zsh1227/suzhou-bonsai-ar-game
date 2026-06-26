@@ -14,7 +14,7 @@ const ASSETS = {
     "assets/leaf/leaf_02.png",
     "assets/leaf/leaf_03.png",
   ],
-  references: {
+  combos: {
     "1-1": "assets/reference/combo_branch01_leaf01.png",
     "1-2": "assets/reference/combo_branch01_leaf02.png",
     "1-3": "assets/reference/combo_branch01_leaf03.png",
@@ -28,64 +28,71 @@ const ASSETS = {
 };
 
 const state = {
+  step: 1,
   container: 1,
   branch: 1,
   leaf: 1,
-  activeTuneLayer: "container",
-  referenceStatus: new Map(),
-  tuning: {
-    container: { x: 0, y: 0, scale: 100 },
-    combo: { x: 0, y: 0, scale: 100 },
+  pose: {
+    x: 0,
+    y: 0,
+    scale: 1,
   },
+  stream: null,
 };
+
+const pointers = new Map();
+let gesture = null;
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
-const els = {
+const elements = {
   pages: $$(".page"),
   homePage: $("#homePage"),
   gamePage: $("#gamePage"),
   resultPage: $("#resultPage"),
   startExperienceButton: $("#startExperienceButton"),
   backHomeButton: $("#backHomeButton"),
-  finishButton: $("#finishButton"),
-  remixButton: $("#remixButton"),
-  resultHomeButton: $("#resultHomeButton"),
-  video: $("#cameraVideo"),
+  resetPoseButton: $("#resetPoseButton"),
+  cameraPanel: $("#cameraPanel"),
+  cameraVideo: $("#cameraVideo"),
   cameraFallback: $("#cameraFallback"),
   cameraMessage: $("#cameraMessage"),
+  bonsaiObject: $("#bonsaiObject"),
+  plantLayer: $("#plantLayer"),
   containerLayer: $("#containerLayer"),
-  comboLayer: $("#comboLayer"),
-  branchFallbackLayer: $("#branchFallbackLayer"),
-  leafFallbackLayer: $("#leafFallbackLayer"),
-  resultContainer: $("#resultContainer"),
-  resultCombo: $("#resultCombo"),
-  resultBranchFallback: $("#resultBranchFallback"),
-  resultLeafFallback: $("#resultLeafFallback"),
-  containerOptions: $("#containerOptions"),
-  branchOptions: $("#branchOptions"),
-  leafOptions: $("#leafOptions"),
-  tuneX: $("#tuneX"),
-  tuneY: $("#tuneY"),
-  tuneScale: $("#tuneScale"),
-  tuneOutput: $("#tuneOutput"),
+  stepInstruction: $("#stepInstruction"),
+  selectionSummary: $("#selectionSummary"),
+  choiceGrid: $("#choiceGrid"),
+  prevStepButton: $("#prevStepButton"),
+  nextStepButton: $("#nextStepButton"),
+  finishBonsaiButton: $("#finishBonsaiButton"),
+  stepPills: $$(".step-pill"),
+  resultPlantLayer: $("#resultPlantLayer"),
+  resultContainerLayer: $("#resultContainerLayer"),
+  resultChoices: $("#resultChoices"),
+  remixButton: $("#remixButton"),
+  resultHomeButton: $("#resultHomeButton"),
 };
 
+function padIndex(index) {
+  return String(index).padStart(2, "0");
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
 function showPage(pageId) {
-  els.pages.forEach((page) => {
+  elements.pages.forEach((page) => {
     page.classList.toggle("is-active", page.id === pageId);
   });
 }
 
 function setCameraMessage(text, type = "normal") {
-  els.cameraMessage.textContent = text;
-  els.cameraMessage.classList.toggle("is-error", type === "error");
-  els.cameraMessage.classList.toggle("is-success", type === "success");
-}
-
-function padIndex(index) {
-  return String(index).padStart(2, "0");
+  elements.cameraMessage.textContent = text;
+  elements.cameraMessage.classList.toggle("is-error", type === "error");
+  elements.cameraMessage.classList.toggle("is-success", type === "success");
 }
 
 function setImage(element, path, visible = true) {
@@ -93,167 +100,248 @@ function setImage(element, path, visible = true) {
   element.classList.toggle("is-visible", visible);
 }
 
-function getReferencePath() {
-  return ASSETS.references[`${state.branch}-${state.leaf}`];
+function getComboPath(branchIndex = state.branch, leafIndex = state.leaf) {
+  return ASSETS.combos[`${branchIndex}-${leafIndex}`];
 }
 
-function getActiveAdjustment(layerName) {
-  return state.tuning[layerName];
+function getStepConfig(step = state.step) {
+  if (step === 1) {
+    return {
+      type: "container",
+      instruction: "请选择一个容器",
+      label: "容器",
+      paths: ASSETS.containers,
+      nextText: "下一步：选枝干",
+    };
+  }
+
+  if (step === 2) {
+    return {
+      type: "branch",
+      instruction: "请选择一个枝干",
+      label: "枝干",
+      paths: ASSETS.branches,
+      nextText: "下一步：选叶片",
+    };
+  }
+
+  return {
+    type: "leaf",
+    instruction: "请选择一种叶片",
+    label: "叶片",
+    paths: ASSETS.leaves,
+    nextText: "",
+  };
 }
 
-function buildTransform(layerName) {
-  const { x, y, scale } = getActiveAdjustment(layerName);
-  return `translateX(calc(-50% + ${x}px)) translateY(${y}px) scale(${scale / 100})`;
+function getSelectedIndex(type) {
+  return state[type];
 }
 
-function applyTuning() {
-  const containerTransform = buildTransform("container");
-  const comboTransform = buildTransform("combo");
+function applyPose() {
+  const { x, y, scale } = state.pose;
+  elements.bonsaiObject.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`;
+}
 
-  els.containerLayer.style.transform = containerTransform;
-  els.resultContainer.style.transform = containerTransform;
+function resetPose() {
+  state.pose.x = 0;
+  state.pose.y = 0;
+  state.pose.scale = 1;
+  applyPose();
+}
 
-  [els.comboLayer, els.branchFallbackLayer, els.leafFallbackLayer, els.resultCombo, els.resultBranchFallback, els.resultLeafFallback].forEach((element) => {
-    element.style.transform = comboTransform;
+function updateSceneLayers() {
+  const containerPath = ASSETS.containers[state.container - 1];
+  setImage(elements.containerLayer, containerPath, true);
+
+  if (state.step === 1) {
+    elements.plantLayer.classList.remove("is-visible");
+    elements.plantLayer.removeAttribute("src");
+    return;
+  }
+
+  if (state.step === 2) {
+    setImage(elements.plantLayer, ASSETS.branches[state.branch - 1], true);
+    return;
+  }
+
+  setImage(elements.plantLayer, getComboPath(), true);
+}
+
+function updateStepUI() {
+  const config = getStepConfig();
+  elements.stepInstruction.textContent = config.instruction;
+  elements.selectionSummary.textContent = `容器：${padIndex(state.container)} · 枝干：${padIndex(state.branch)} · 叶片：${padIndex(state.leaf)}`;
+
+  elements.stepPills.forEach((pill) => {
+    const step = Number(pill.dataset.step);
+    pill.classList.toggle("is-active", step === state.step);
   });
 
-  updateTuneControls();
-  updateTuneOutput();
+  elements.prevStepButton.disabled = state.step === 1;
+  elements.prevStepButton.classList.toggle("is-disabled", state.step === 1);
+  elements.nextStepButton.classList.toggle("is-hidden", state.step === 3);
+  elements.finishBonsaiButton.classList.toggle("is-hidden", state.step !== 3);
+  elements.nextStepButton.textContent = config.nextText;
 }
 
-function updateTuneControls() {
-  const current = getActiveAdjustment(state.activeTuneLayer);
-  els.tuneX.value = current.x;
-  els.tuneY.value = current.y;
-  els.tuneScale.value = current.scale;
+function renderChoices() {
+  const config = getStepConfig();
+  const selectedIndex = getSelectedIndex(config.type);
+  elements.choiceGrid.innerHTML = "";
+
+  config.paths.forEach((path, index) => {
+    const assetIndex = index + 1;
+    const button = document.createElement("button");
+    const image = document.createElement("img");
+    const text = document.createElement("span");
+
+    button.type = "button";
+    button.className = "choice-button";
+    button.classList.toggle("is-active", selectedIndex === assetIndex);
+    image.src = path;
+    image.alt = `${config.label} ${padIndex(assetIndex)}`;
+    text.textContent = `${config.label} ${padIndex(assetIndex)}`;
+
+    button.append(image, text);
+    button.addEventListener("click", () => selectCurrentStepAsset(assetIndex));
+    elements.choiceGrid.append(button);
+  });
 }
 
-function updateTuneOutput() {
-  els.tuneOutput.textContent = JSON.stringify(state.tuning, null, 2);
+function renderStep() {
+  updateSceneLayers();
+  updateStepUI();
+  renderChoices();
 }
 
-function hideFallbackLayers() {
-  els.branchFallbackLayer.classList.remove("is-visible");
-  els.leafFallbackLayer.classList.remove("is-visible");
-  els.resultBranchFallback.classList.remove("is-visible");
-  els.resultLeafFallback.classList.remove("is-visible");
+function goToStep(step) {
+  state.step = clamp(step, 1, 3);
+  renderStep();
 }
 
-function showFallbackLayers() {
-  els.comboLayer.classList.remove("is-visible");
-  els.resultCombo.classList.remove("is-visible");
-  els.branchFallbackLayer.classList.add("is-visible");
-  els.leafFallbackLayer.classList.add("is-visible");
-  els.resultBranchFallback.classList.add("is-visible");
-  els.resultLeafFallback.classList.add("is-visible");
+function selectCurrentStepAsset(index) {
+  const { type } = getStepConfig();
+  state[type] = index;
+  renderStep();
 }
 
-// 如何切换容器：根据用户选择的序号读取 assets/container/container_01.png 到 container_03.png。
-function updateContainer(index) {
-  state.container = index;
-  const path = ASSETS.containers[index - 1];
-  setImage(els.containerLayer, path);
-  setImage(els.resultContainer, path);
+function renderResult() {
+  setImage(elements.resultContainerLayer, ASSETS.containers[state.container - 1], true);
+  setImage(elements.resultPlantLayer, getComboPath(), true);
+  elements.resultChoices.innerHTML = `
+    <li>容器：${padIndex(state.container)}</li>
+    <li>枝干：${padIndex(state.branch)}</li>
+    <li>叶片：${padIndex(state.leaf)}</li>
+  `;
 }
 
-// 如何切换枝干：更新枝干缩略图选择，并触发 reference 组合图刷新。
-function updateBranch(index) {
-  state.branch = index;
-  const path = ASSETS.branches[index - 1];
-  setImage(els.branchFallbackLayer, path);
-  setImage(els.resultBranchFallback, path);
-  updateCombo();
+function getPointerList() {
+  return Array.from(pointers.values());
 }
 
-// 如何切换叶片：更新叶片缩略图选择，并触发 reference 组合图刷新。
-function updateLeaf(index) {
-  state.leaf = index;
-  const path = ASSETS.leaves[index - 1];
-  setImage(els.leafFallbackLayer, path);
-  setImage(els.resultLeafFallback, path);
-  updateCombo();
+function getDistance(pointA, pointB) {
+  return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y);
 }
 
-// 如何根据 branch + leaf 组合选择 reference 图片：用 “枝干序号-叶片序号” 映射到 9 张 combo_branchXX_leafXX.png。
-function updateCombo() {
-  const referencePath = getReferencePath();
-  const hasReference = state.referenceStatus.get(referencePath) === true;
+function getMidpoint(pointA, pointB) {
+  return {
+    x: (pointA.x + pointB.x) / 2,
+    y: (pointA.y + pointB.y) / 2,
+  };
+}
 
-  if (hasReference) {
-    setImage(els.comboLayer, referencePath);
-    setImage(els.resultCombo, referencePath);
-    hideFallbackLayers();
-  } else {
-    console.warn(`组合参考图未找到，已使用枝干和叶片备用层：${referencePath}`);
-    showFallbackLayers();
+function beginGesture() {
+  const activePointers = getPointerList();
+
+  if (activePointers.length === 1) {
+    gesture = {
+      mode: "drag",
+      startPoint: activePointers[0],
+      startX: state.pose.x,
+      startY: state.pose.y,
+    };
+    return;
+  }
+
+  if (activePointers.length >= 2) {
+    const [pointA, pointB] = activePointers;
+    gesture = {
+      mode: "pinch",
+      startDistance: getDistance(pointA, pointB),
+      startMidpoint: getMidpoint(pointA, pointB),
+      startX: state.pose.x,
+      startY: state.pose.y,
+      startScale: state.pose.scale,
+    };
   }
 }
 
-function refreshChoiceButtons() {
-  $$(".choice-button").forEach((button) => {
-    const type = button.dataset.type;
-    const index = Number(button.dataset.index);
-    button.classList.toggle("is-active", state[type] === index);
-  });
+function handlePointerDown(event) {
+  event.preventDefault();
+  elements.cameraPanel.setPointerCapture(event.pointerId);
+  pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  beginGesture();
 }
 
-function selectAsset(type, index) {
-  if (type === "container") updateContainer(index);
-  if (type === "branch") updateBranch(index);
-  if (type === "leaf") updateLeaf(index);
-  refreshChoiceButtons();
-}
+function handlePointerMove(event) {
+  if (!pointers.has(event.pointerId) || !gesture) return;
 
-function createChoiceButton(type, index) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "choice-button";
-  button.dataset.type = type;
-  button.dataset.index = String(index);
-  button.textContent = `${type === "container" ? "器" : type === "branch" ? "枝" : "叶"} ${padIndex(index)}`;
-  button.addEventListener("click", () => selectAsset(type, index));
-  return button;
-}
+  event.preventDefault();
+  pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  const activePointers = getPointerList();
 
-function renderChoiceButtons() {
-  for (let index = 1; index <= 3; index += 1) {
-    els.containerOptions.append(createChoiceButton("container", index));
-    els.branchOptions.append(createChoiceButton("branch", index));
-    els.leafOptions.append(createChoiceButton("leaf", index));
+  if (activePointers.length === 1 && gesture.mode === "drag") {
+    const point = activePointers[0];
+    state.pose.x = gesture.startX + point.x - gesture.startPoint.x;
+    state.pose.y = gesture.startY + point.y - gesture.startPoint.y;
+    applyPose();
+    return;
+  }
+
+  if (activePointers.length >= 2) {
+    if (gesture.mode !== "pinch") {
+      beginGesture();
+      return;
+    }
+
+    const [pointA, pointB] = activePointers;
+    const distance = getDistance(pointA, pointB);
+    const midpoint = getMidpoint(pointA, pointB);
+    const ratio = distance / Math.max(gesture.startDistance, 1);
+
+    state.pose.scale = clamp(gesture.startScale * ratio, 0.45, 2.4);
+    state.pose.x = gesture.startX + midpoint.x - gesture.startMidpoint.x;
+    state.pose.y = gesture.startY + midpoint.y - gesture.startMidpoint.y;
+    applyPose();
   }
 }
 
-function switchPanel(panelId) {
-  $$(".tab-button").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.panel === panelId);
-  });
-  $$(".asset-panel").forEach((panel) => {
-    panel.classList.toggle("is-active", panel.id === panelId);
-  });
+function handlePointerEnd(event) {
+  pointers.delete(event.pointerId);
+  if (pointers.size === 0) {
+    gesture = null;
+    return;
+  }
+  beginGesture();
 }
 
-function switchTuneLayer(layerName) {
-  state.activeTuneLayer = layerName;
-  $$(".layer-button").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.layer === layerName);
-  });
-  updateTuneControls();
-}
-
-function updateCurrentTuneValue(key, value) {
-  state.tuning[state.activeTuneLayer][key] = Number(value);
-  applyTuning();
+function handleWheel(event) {
+  event.preventDefault();
+  const scaleFactor = event.deltaY > 0 ? 0.94 : 1.06;
+  state.pose.scale = clamp(state.pose.scale * scaleFactor, 0.45, 2.4);
+  applyPose();
 }
 
 function preloadImage(path) {
   return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => resolve({ path, ok: true });
-    img.onerror = () => {
+    const image = new Image();
+    image.onload = () => resolve({ path, ok: true });
+    image.onerror = () => {
       console.warn(`图片加载失败，请检查相对路径和文件名：${path}`);
       resolve({ path, ok: false });
     };
-    img.src = path;
+    image.src = path;
   });
 }
 
@@ -262,33 +350,20 @@ async function preloadAssets() {
     ...ASSETS.containers,
     ...ASSETS.branches,
     ...ASSETS.leaves,
-    ...Object.values(ASSETS.references),
+    ...Object.values(ASSETS.combos),
   ];
-
   const results = await Promise.all(paths.map(preloadImage));
-  results.forEach(({ path, ok }) => {
-    if (path.startsWith("assets/reference/")) {
-      state.referenceStatus.set(path, ok);
-    }
-  });
+  const missingCount = results.filter((result) => !result.ok).length;
 
-  const missingBase = results.filter(({ path, ok }) => !ok && !path.startsWith("assets/reference/")).length;
-  const missingReference = results.filter(({ path, ok }) => !ok && path.startsWith("assets/reference/")).length;
-
-  if (missingBase > 0) {
-    setCameraMessage(`有 ${missingBase} 张基础素材未找到，请检查 assets 下的文件名。`, "error");
-  } else if (missingReference > 0) {
-    setCameraMessage("基础素材已加载；部分组合参考图未找到，当前会使用枝干和叶片备用层。");
+  if (missingCount > 0) {
+    setCameraMessage(`有 ${missingCount} 张素材未找到，请检查 assets 文件夹中的命名。`, "error");
   }
-
-  updateCombo();
 }
 
-// 如何调用摄像头：GitHub Pages 提供 HTTPS，手机浏览器可通过 getUserMedia 请求权限；本地请用 localhost 测试。
 async function startCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     setCameraMessage("当前浏览器暂不支持摄像头功能，请使用手机 Chrome 或 Safari 打开。", "error");
-    return false;
+    return;
   }
 
   try {
@@ -296,58 +371,70 @@ async function startCamera() {
       video: { facingMode: { ideal: "environment" } },
       audio: false,
     });
-    els.video.srcObject = stream;
-    els.cameraFallback.style.display = "none";
-    setCameraMessage("摄像头已开启，选择素材完成你的苏派盆景吧。", "success");
-    return true;
+
+    state.stream = stream;
+    elements.cameraVideo.srcObject = stream;
+    elements.cameraFallback.style.display = "none";
+    setCameraMessage("摄像头已开启。可单指拖动，双指缩放盆景。", "success");
   } catch (error) {
     console.warn("摄像头权限或启动失败：", error);
     setCameraMessage("请允许摄像头权限，才能体验 AR 盆景拼装。", "error");
-    return false;
   }
 }
 
-function resetGame() {
-  updateContainer(1);
-  updateBranch(1);
-  updateLeaf(1);
-  state.tuning.container = { x: 0, y: 0, scale: 100 };
-  state.tuning.combo = { x: 0, y: 0, scale: 100 };
-  state.activeTuneLayer = "container";
-  switchTuneLayer("container");
-  applyTuning();
-  refreshChoiceButtons();
+function stopCamera() {
+  if (!state.stream) return;
+  state.stream.getTracks().forEach((track) => track.stop());
+  state.stream = null;
+  elements.cameraVideo.srcObject = null;
+  elements.cameraFallback.style.display = "grid";
 }
 
-// 如何部署到 GitHub Pages：项目只依赖相对路径、index.html、style.css、script.js 和 assets 文件夹，可部署在仓库子路径。
 function bindEvents() {
-  els.startExperienceButton.addEventListener("click", async () => {
+  elements.startExperienceButton.addEventListener("click", () => {
     showPage("gamePage");
-    await startCamera();
+    goToStep(1);
+    startCamera();
   });
 
-  els.backHomeButton.addEventListener("click", () => showPage("homePage"));
-  els.finishButton.addEventListener("click", () => showPage("resultPage"));
-  els.remixButton.addEventListener("click", () => showPage("gamePage"));
-  els.resultHomeButton.addEventListener("click", () => showPage("homePage"));
-
-  $$(".tab-button").forEach((button) => {
-    button.addEventListener("click", () => switchPanel(button.dataset.panel));
+  elements.backHomeButton.addEventListener("click", () => {
+    stopCamera();
+    showPage("homePage");
   });
 
-  $$(".layer-button").forEach((button) => {
-    button.addEventListener("click", () => switchTuneLayer(button.dataset.layer));
+  elements.resetPoseButton.addEventListener("click", resetPose);
+  elements.prevStepButton.addEventListener("click", () => goToStep(state.step - 1));
+  elements.nextStepButton.addEventListener("click", () => goToStep(state.step + 1));
+  elements.finishBonsaiButton.addEventListener("click", () => {
+    renderResult();
+    showPage("resultPage");
   });
 
-  els.tuneX.addEventListener("input", (event) => updateCurrentTuneValue("x", event.target.value));
-  els.tuneY.addEventListener("input", (event) => updateCurrentTuneValue("y", event.target.value));
-  els.tuneScale.addEventListener("input", (event) => updateCurrentTuneValue("scale", event.target.value));
+  elements.stepPills.forEach((pill) => {
+    pill.addEventListener("click", () => goToStep(Number(pill.dataset.step)));
+  });
+
+  elements.remixButton.addEventListener("click", () => {
+    showPage("gamePage");
+    goToStep(1);
+  });
+
+  elements.resultHomeButton.addEventListener("click", () => {
+    stopCamera();
+    showPage("homePage");
+  });
+
+  elements.cameraPanel.addEventListener("pointerdown", handlePointerDown);
+  elements.cameraPanel.addEventListener("pointermove", handlePointerMove);
+  elements.cameraPanel.addEventListener("pointerup", handlePointerEnd);
+  elements.cameraPanel.addEventListener("pointercancel", handlePointerEnd);
+  elements.cameraPanel.addEventListener("wheel", handleWheel, { passive: false });
 }
 
 function init() {
-  renderChoiceButtons();
   bindEvents();
-  resetGame();
+  resetPose();
+  renderStep();
   preloadAssets();
 }
 
