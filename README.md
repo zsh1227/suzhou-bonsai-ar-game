@@ -90,29 +90,29 @@ assets/leaf/leaf_03.png
 ### 枝干 + 叶片组合图
 
 ```text
-assets/reference/combo_branch01_leaf01.png
-assets/reference/combo_branch01_leaf02.png
-assets/reference/combo_branch01_leaf03.png
-assets/reference/combo_branch02_leaf01.png
-assets/reference/combo_branch02_leaf02.png
-assets/reference/combo_branch02_leaf03.png
-assets/reference/combo_branch03_leaf01.png
-assets/reference/combo_branch03_leaf02.png
-assets/reference/combo_branch03_leaf03.png
+assets/reference/01/0101.png
+assets/reference/01/0102.png
+assets/reference/01/0103.png
+assets/reference/02/0201.png
+assets/reference/02/0202.png
+assets/reference/02/0203.png
+assets/reference/03/0301.png
+assets/reference/03/0302.png
+assets/reference/03/0303.png
 ```
 
 组合规则：
 
 ```text
-branch_01 + leaf_01 -> assets/reference/combo_branch01_leaf01.png
-branch_01 + leaf_02 -> assets/reference/combo_branch01_leaf02.png
-branch_01 + leaf_03 -> assets/reference/combo_branch01_leaf03.png
-branch_02 + leaf_01 -> assets/reference/combo_branch02_leaf01.png
-branch_02 + leaf_02 -> assets/reference/combo_branch02_leaf02.png
-branch_02 + leaf_03 -> assets/reference/combo_branch02_leaf03.png
-branch_03 + leaf_01 -> assets/reference/combo_branch03_leaf01.png
-branch_03 + leaf_02 -> assets/reference/combo_branch03_leaf02.png
-branch_03 + leaf_03 -> assets/reference/combo_branch03_leaf03.png
+branch_01 + leaf_01 -> assets/reference/01/0101.png
+branch_01 + leaf_02 -> assets/reference/01/0102.png
+branch_01 + leaf_03 -> assets/reference/01/0103.png
+branch_02 + leaf_01 -> assets/reference/02/0201.png
+branch_02 + leaf_02 -> assets/reference/02/0202.png
+branch_02 + leaf_03 -> assets/reference/02/0203.png
+branch_03 + leaf_01 -> assets/reference/03/0301.png
+branch_03 + leaf_02 -> assets/reference/03/0302.png
+branch_03 + leaf_03 -> assets/reference/03/0303.png
 ```
 
 ## 本地测试

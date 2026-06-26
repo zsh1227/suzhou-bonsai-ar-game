@@ -14,17 +14,6 @@ const ASSETS = {
     "assets/leaf/leaf_02.png",
     "assets/leaf/leaf_03.png",
   ],
-  combos: {
-    "1-1": "assets/reference/combo_branch01_leaf01.png",
-    "1-2": "assets/reference/combo_branch01_leaf02.png",
-    "1-3": "assets/reference/combo_branch01_leaf03.png",
-    "2-1": "assets/reference/combo_branch02_leaf01.png",
-    "2-2": "assets/reference/combo_branch02_leaf02.png",
-    "2-3": "assets/reference/combo_branch02_leaf03.png",
-    "3-1": "assets/reference/combo_branch03_leaf01.png",
-    "3-2": "assets/reference/combo_branch03_leaf02.png",
-    "3-3": "assets/reference/combo_branch03_leaf03.png",
-  },
 };
 
 const state = {
@@ -100,8 +89,20 @@ function setImage(element, path, visible = true) {
   element.classList.toggle("is-visible", visible);
 }
 
-function getComboPath(branchIndex = state.branch, leafIndex = state.leaf) {
-  return ASSETS.combos[`${branchIndex}-${leafIndex}`];
+function getComboPath(branchIndex = state.branch - 1, leafIndex = state.leaf - 1) {
+  const branchCode = String(branchIndex + 1).padStart(2, "0");
+  const leafCode = String(leafIndex + 1).padStart(2, "0");
+  return `assets/reference/${branchCode}/${branchCode}${leafCode}.png`;
+}
+
+function getAllComboPaths() {
+  const paths = [];
+  for (let branchIndex = 0; branchIndex < ASSETS.branches.length; branchIndex += 1) {
+    for (let leafIndex = 0; leafIndex < ASSETS.leaves.length; leafIndex += 1) {
+      paths.push(getComboPath(branchIndex, leafIndex));
+    }
+  }
+  return paths;
 }
 
 function getStepConfig(step = state.step) {
@@ -338,7 +339,7 @@ function preloadImage(path) {
     const image = new Image();
     image.onload = () => resolve({ path, ok: true });
     image.onerror = () => {
-      console.warn(`图片加载失败，请检查相对路径和文件名：${path}`);
+      console.error("图片加载失败：", path);
       resolve({ path, ok: false });
     };
     image.src = path;
@@ -350,7 +351,7 @@ async function preloadAssets() {
     ...ASSETS.containers,
     ...ASSETS.branches,
     ...ASSETS.leaves,
-    ...Object.values(ASSETS.combos),
+    ...getAllComboPaths(),
   ];
   const results = await Promise.all(paths.map(preloadImage));
   const missingCount = results.filter((result) => !result.ok).length;
