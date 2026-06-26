@@ -4,9 +4,13 @@
 
 本项目是纯静态网页项目，可直接部署到 GitHub Pages。
 
-访问链接格式一般为：
+主小游戏链接格式一般为：
 
 [https://你的GitHub用户名.github.io/suzhou-bonsai-ar-game/](https://你的GitHub用户名.github.io/suzhou-bonsai-ar-game/)
+
+Kivicube 介绍入口页链接格式一般为：
+
+[https://你的GitHub用户名.github.io/suzhou-bonsai-ar-game/kivicube-entry.html](https://你的GitHub用户名.github.io/suzhou-bonsai-ar-game/kivicube-entry.html)
 
 ## 核心体验
 
@@ -48,6 +52,7 @@ suzhou-bonsai-ar-game/
 ├── style.css
 ├── script.js
 ├── README.md
+├── kivicube-entry.html
 └── assets/
     ├── container/
     ├── branch/
@@ -55,7 +60,7 @@ suzhou-bonsai-ar-game/
     └── reference/
 ```
 
-`index.html`、`style.css`、`script.js`、`README.md` 必须位于仓库根目录。
+`index.html`、`style.css`、`script.js`、`README.md`、`kivicube-entry.html` 必须位于仓库根目录。
 
 `assets` 文件夹必须和 `index.html` 在同一级目录。
 
@@ -115,6 +120,46 @@ branch_03 + leaf_02 -> assets/reference/03/0302.png
 branch_03 + leaf_03 -> assets/reference/03/0303.png
 ```
 
+## 接入 Kivicube 方法
+
+1. 先把小游戏部署到 GitHub Pages，获得 HTTPS 链接。
+2. 复制小游戏链接。
+3. 在 Kivicube 项目中添加一个按钮、热点、图标或外部链接入口。
+4. 将该入口的跳转链接设置为小游戏的 GitHub Pages 链接。
+5. 用户在 Kivicube 中点击入口后，会跳转到小游戏页面。
+6. 手机浏览器会请求摄像头权限。
+7. 用户允许摄像头后，即可开始 AR 盆景拼装。
+
+### 方案 A：直接跳转到小游戏
+
+Kivicube 按钮链接直接填：
+
+```text
+YOUR_GAME_URL_HERE
+```
+
+后续请把 `YOUR_GAME_URL_HERE` 替换为真实 GitHub Pages HTTPS 链接，例如：
+
+```text
+https://你的GitHub用户名.github.io/suzhou-bonsai-ar-game/
+```
+
+如果想流程更短，用方案 A。
+
+### 方案 B：先跳转到介绍页
+
+Kivicube 按钮链接填：
+
+```text
+https://你的GitHub用户名.github.io/suzhou-bonsai-ar-game/kivicube-entry.html
+```
+
+然后用户在介绍页点击“开始拼装盆景”，再进入小游戏。
+
+如果想先给小朋友一个介绍页，用方案 B。
+
+注意：`kivicube-entry.html` 中目前使用占位符 `YOUR_GAME_URL_HERE`，正式使用前请替换为真实的 GitHub Pages HTTPS 链接。
+
 ## 本地测试
 
 不要直接双击 `index.html` 使用 `file://` 打开。
@@ -145,12 +190,11 @@ python -m http.server 8000
    - `style.css`
    - `script.js`
    - `README.md`
+   - `kivicube-entry.html`
    - `assets` 文件夹
 
 3. 打开仓库 `Settings`。
-
 4. 找到 `Pages`。
-
 5. `Source` 选择：
 
    ```text
@@ -170,7 +214,6 @@ python -m http.server 8000
    ```
 
 8. 保存并等待部署完成。
-
 9. 使用手机 Chrome 或 Safari 打开：
 
    [https://你的GitHub用户名.github.io/suzhou-bonsai-ar-game/](https://你的GitHub用户名.github.io/suzhou-bonsai-ar-game/)

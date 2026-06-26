@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#8EB1A7">
+  <title>苏派盆景 AR 拼装小游戏入口</title>
+  <style>
+    :root {
+      --outer-bg: #EEF3E6;
+      --card-bg: #F7F8EF;
+      --jade: #8EB1A7;
+      --deep: #3F6F64;
+      --pale: #E5E6CB;
+      --gold: #C9A96A;
+      --soft-text: rgba(63, 111, 100, 0.72);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      display: grid;
+      min-height: 100vh;
+      place-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 14% 16%, rgba(201, 169, 106, 0.2), transparent 28%),
+        radial-gradient(circle at 88% 82%, rgba(142, 177, 167, 0.32), transparent 34%),
+        var(--outer-bg);
+      color: var(--deep);
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+    }
+
+    button {
+      min-height: 52px;
+      border: 0;
+      font: inherit;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .phone-shell {
+      width: 390px;
+      height: 844px;
+      overflow: hidden;
+      border: 10px solid rgba(63, 111, 100, 0.12);
+      border-radius: 36px;
+      background: var(--card-bg);
+      box-shadow: 0 20px 60px rgba(63, 111, 100, 0.25);
+    }
+
+    .entry-screen {
+      position: relative;
+      display: flex;
+      width: 100%;
+      height: 100%;
+      flex-direction: column;
+      padding: 48px 20px 22px;
+      background:
+        linear-gradient(155deg, rgba(255, 255, 255, 0.76), rgba(229, 230, 203, 0.5)),
+        var(--card-bg);
+    }
+
+    .status-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: flex;
+      width: 100%;
+      min-height: 34px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 26px 4px;
+      color: rgba(63, 111, 100, 0.86);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .status-icons {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-icons span {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--deep);
+    }
+
+    .status-icons i {
+      position: relative;
+      width: 23px;
+      height: 12px;
+      border: 1.5px solid var(--deep);
+      border-radius: 4px;
+    }
+
+    .status-icons i::before {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 6px;
+      border-radius: 2px;
+      background: var(--deep);
+      content: "";
+    }
+
+    .hero-card,
+    .guide-card,
+    .foot-note {
+      border: 1px solid rgba(142, 177, 167, 0.24);
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 16px 34px rgba(63, 111, 100, 0.1);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero-card {
+      padding: 22px 20px;
+      border-radius: 28px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+    }
+
+    h1,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 12px;
+      color: var(--deep);
+      font-size: 29px;
+      line-height: 1.16;
+    }
+
+    .subtitle {
+      margin-bottom: 0;
+      color: var(--soft-text);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .scene {
+      position: relative;
+      height: 292px;
+      margin: 22px 0;
+      overflow: hidden;
+      border: 1px solid rgba(201, 169, 106, 0.25);
+      border-radius: 32px;
+      background:
+        radial-gradient(circle at 52% 26%, rgba(255, 255, 255, 0.88), transparent 26%),
+        linear-gradient(180deg, rgba(142, 177, 167, 0.12), rgba(229, 230, 203, 0.82));
+      box-shadow: inset 0 -22px 44px rgba(63, 111, 100, 0.08);
+    }
+
+    .moon {
+      position: absolute;
+      top: 28px;
+      right: 44px;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.74);
+    }
+
+    .branch {
+      position: absolute;
+      left: 50%;
+      bottom: 100px;
+      width: 18px;
+      height: 132px;
+      border-radius: 999px;
+      background: #806347;
+      transform: translateX(-18px) rotate(-10deg);
+      transform-origin: bottom center;
+    }
+
+    .branch::before,
+    .branch::after {
+      position: absolute;
+      border-radius: 48% 52% 44% 56%;
+      background: linear-gradient(145deg, #5e8e70, #a9c694);
+      content: "";
+    }
+
+    .branch::before {
+      top: -20px;
+      left: -70px;
+      width: 128px;
+      height: 64px;
+    }
+
+    .branch::after {
+      top: 36px;
+      right: -72px;
+      width: 116px;
+      height: 58px;
+    }
+
+    .pot {
+      position: absolute;
+      bottom: 54px;
+      left: 50%;
+      width: 170px;
+      height: 62px;
+      border-radius: 18px 18px 34px 34px;
+      background: linear-gradient(180deg, #c9a96a, #9d7851);
+      transform: translateX(-50%);
+    }
+
+    .pot::before {
+      position: absolute;
+      top: -12px;
+      left: -10px;
+      width: 190px;
+      height: 24px;
+      border-radius: 999px;
+      background: #dec487;
+      content: "";
+    }
+
+    .guide-card {
+      margin-bottom: auto;
+      padding: 16px;
+      border-radius: 22px;
+    }
+
+    .guide-card p {
+      margin-bottom: 0;
+      color: var(--soft-text);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .primary-button {
+      width: 100%;
+      margin-top: 18px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--deep), var(--jade));
+      color: #fff;
+      font-weight: 900;
+      box-shadow: 0 12px 26px rgba(63, 111, 100, 0.24);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .primary-button:active {
+      transform: scale(0.98);
+    }
+
+    .foot-note {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      color: var(--soft-text);
+      font-size: 12px;
+      line-height: 1.55;
+      text-align: center;
+    }
+
+    @media (max-width: 430px) {
+      body {
+        background: var(--card-bg);
+      }
+
+      .phone-shell {
+        width: 100vw;
+        height: 100vh;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone-shell" aria-label="Kivicube 跳转入口">
+    <section class="entry-screen">
+      <div class="status-bar" aria-hidden="true">
+        <span>9:41</span>
+        <span class="status-icons">
+          <span></span>
+          <span></span>
+          <span></span>
+          <i></i>
+        </span>
+      </div>
+
+      <div class="hero-card">
+        <p class="eyebrow">KIVICUBE · 苏派盆景</p>
+        <h1>苏派盆景 AR 拼装小游戏</h1>
+        <p class="subtitle">进入互动小游戏，搭配属于你的江南小盆景</p>
+      </div>
+
+      <div class="scene" aria-hidden="true">
+        <div class="moon"></div>
+        <div class="branch"></div>
+        <div class="pot"></div>
+      </div>
+
+      <div class="guide-card">
+        <p>通过手机摄像头，将苏派盆景放进真实场景中。选择容器、枝干和叶片，完成一盆属于自己的盆景作品。</p>
+      </div>
+
+      <button id="openGameButton" class="primary-button" type="button">开始拼装盆景</button>
+      <p class="foot-note">请使用手机浏览器打开，并允许摄像头权限。</p>
+    </section>
+  </main>
+
+  <script>
+    const GAME_URL = "YOUR_GAME_URL_HERE";
+
+    document.querySelector("#openGameButton").addEventListener("click", () => {
+      window.location.href = GAME_URL;
+    });
+  </script>
+</body>
+</html>
