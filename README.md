@@ -164,6 +164,14 @@ https://你的GitHub用户名.github.io/suzhou-bonsai-ar-game/kivicube-entry.htm
 https://zsh1227.github.io/suzhou-bonsai-ar-game/
 ```
 
+### 游戏完成后返回 Kivicube
+
+小游戏结果页已加入“返回 Kivicube 场景”按钮，点击后会跳转到：
+
+```text
+https://cloud.kivicube.com/pages/kivicube/scene?scene-id=LRnKy1wGe4fDFAxt5QXVBF5mLAiKy22P
+```
+
 ## 本地测试
 
 不要直接双击 `index.html` 使用 `file://` 打开。

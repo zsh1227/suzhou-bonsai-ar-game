@@ -16,6 +16,8 @@ const ASSETS = {
   ],
 };
 
+const KIVICUBE_SCENE_URL = "https://cloud.kivicube.com/pages/kivicube/scene?scene-id=LRnKy1wGe4fDFAxt5QXVBF5mLAiKy22P";
+
 const state = {
   step: 1,
   container: 1,
@@ -60,6 +62,7 @@ const elements = {
   resultPlantLayer: $("#resultPlantLayer"),
   resultContainerLayer: $("#resultContainerLayer"),
   resultChoices: $("#resultChoices"),
+  backToKivicubeButton: $("#backToKivicubeButton"),
   remixButton: $("#remixButton"),
   resultHomeButton: $("#resultHomeButton"),
 };
@@ -409,6 +412,10 @@ function bindEvents() {
   elements.finishBonsaiButton.addEventListener("click", () => {
     renderResult();
     showPage("resultPage");
+  });
+
+  elements.backToKivicubeButton.addEventListener("click", () => {
+    window.location.href = KIVICUBE_SCENE_URL;
   });
 
   elements.stepPills.forEach((pill) => {
