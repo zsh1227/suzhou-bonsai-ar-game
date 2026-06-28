@@ -16,7 +16,7 @@ const ASSETS = {
   ],
 };
 
-const KIVICUBE_SCENE_URL = "https://cloud.kivicube.com/pages/kivicube/scene?scene-id=LRnKy1wGe4fDFAxt5QXVBF5mLAiKy22P";
+const KIVICUBE_SCENE_URL = "https://www.kivicube.com/face-scenes/LRnKy1wGe4fDFAxt5QXVBF5mLAiKy22P";
 
 const state = {
   step: 1,

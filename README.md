@@ -169,7 +169,7 @@ https://zsh1227.github.io/suzhou-bonsai-ar-game/
 小游戏结果页已加入“返回 Kivicube 场景”按钮，点击后会跳转到：
 
 ```text
-https://cloud.kivicube.com/pages/kivicube/scene?scene-id=LRnKy1wGe4fDFAxt5QXVBF5mLAiKy22P
+https://www.kivicube.com/face-scenes/LRnKy1wGe4fDFAxt5QXVBF5mLAiKy22P
 ```
 
 ## 本地测试
